@@ -1,45 +1,119 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/python 
+#coding=utf8
 """
-Zabbix SMTP Alert script
+# Author: Bill
+# Created Time : 2016-09-21 17:31:42
+
+# File Name: w.py
+# Description:
+
+SMTPSå’ŒSMTPåè®®ä¸€æ ·ï¼Œä¹Ÿæ˜¯ç”¨æ¥å‘é€é‚®ä»¶çš„ï¼Œåªæ˜¯æ›´å®‰å…¨äº›ï¼Œé˜²æ­¢é‚®ä»¶è¢«é»‘å®¢æˆªå–æ³„éœ²ï¼Œè¿˜å¯å®ç°é‚®ä»¶å‘é€è€…æŠ—æŠµèµ–åŠŸèƒ½ã€‚é˜²æ­¢å‘é€è€…å‘é€ä¹‹ååˆ é™¤å·²å‘é‚®ä»¶ï¼Œæ‹’ä¸æ‰¿è®¤å‘é€è¿‡è¿™æ ·ä¸€ä»½é‚®ä»¶ã€‚
+
+# é»˜è®¤SMTPç«¯å£ä¸º25
+# é»˜è®¤SMTPSç«¯å£ä¸º465
+
 """
-import sys
-import smtplib
-from email.mime.text import MIMEText
+import smtplib 
+from email.mime.text import MIMEText 
+import os 
+import argparse
+import logging
+import datetime
+ 
+#QQ enterprise
+#smtp_server = 'smtp.exmail.qq.com' 
+#smtp_port = 25 
+#smtp_user = 'xxxxx@qq.com'
+#smtp_pass = '*********'
+#smtp_tls = False
+#smtp_info = "sc:"
 
+#163 Mail
+#smtp_server = 'smtp.163.com' 
+#smtp_port = 25
+#smtp_user = 'alarm@163.com'
+#smtp_pass = '*******'
+#smtp_tls = False
+#smtp_info = "sc:"
 
-#ÓÊ¼ş·¢ËÍÁĞ±í£¬·¢¸øÄÄĞ©ÈË
-#mailto_list=["XXXXX@gmail"]
-#ÉèÖÃ·şÎñÆ÷£¬ÓÃ»§Ãû¡¢¿ÚÁîÒÔ¼°ÓÊÏäµÄºó×º
-mail_host="smtp.163.com"
-mail_user="XXXXX"
-mail_pass="XXXXX"
-mail_postfix="163.com"
+#Duomi Mail
+#smtp_server = 'mail.duomi.com' 
+#smtp_port = 25 
+#smtp_user = 'jason.jia@duomi.com'
+#smtp_pass = '********'
+#smtp_tls = False
+#smtp_info = "sc:"
 
-#¶¨Òåsend_mailº¯Êı
-def send_mail(to_list,sub,content):
+smtp_server = 'smtp.exmail.qq.com' 
+smtp_port = 465 
+smtp_user = 'xxxxx@qq.com'
+smtp_pass = '*********'
+smtp_tls = True
+# æç¤ºä¿¡æ¯
+smtp_info = "sc:"
+
+def send_mail(mail_to,subject,content): 
     '''
-    to_list:·¢¸øË­
-    sub:Ö÷Ìâ
-    content:ÄÚÈİ
+    mail_to:å‘ç»™è°
+    Subject:ä¸»é¢˜
+    content:å†…å®¹
     send_mail("XXXXXXXXXXX@qq.com","sub","content")
     '''
-    address=mail_user+"<"+mail_user+"@"+mail_postfix+">"
-    msg = MIMEText(content)
-    msg['Subject'] = sub
-    msg['From'] = address
-    msg['To'] =to_list
-    try:
-        s = smtplib.SMTP()
-        s.connect(mail_host)
-        s.login(mail_user,mail_pass)
-        s.sendmail(address, to_list, msg.as_string())
-        s.close()
-        return True
-    except Exception, e:
-        print str(e)
-        return False
-if __name__ == '__main__':
-       send_mail(sys.argv[1], sys.argv[2], sys.argv[3])
-       #send_mail("XXXXXXXXX@qq.com","ww" , "hh")
+    msg = MIMEText(content) 
+    msg['Subject'] = smtp_info + subject 
+    msg['From'] = smtp_user 
+    msg['to'] = mail_to 
+    global sendstatus
+    global senderr
+    if smtp_tls:
+        smtp_class = smtplib.SMTP_SSL
+    else:
+        smtp_class = smtplib.SMTP
+     
+    try: 
+        smtp = smtp_class() 
+        smtp.connect(smtp_server,smtp_port) 
+        smtp.login(smtp_user,smtp_pass) 
+        smtp.sendmail(smtp_user,mail_to,msg.as_string()) 
+        smtp.close() 
+        print 'send ok'
+        sendstatus = True 
+    except Exception,e: 
+        senderr=str(e)
+        print senderr
+        sendstatus = False 
+     
+def logwrite(sendstatus,mail_to,content):
+    logpath='/var/log/zabbix/alert'
+
+    if not sendstatus:
+        content = senderr
+
+    if not os.path.isdir(logpath):
+        os.makedirs(logpath)
+
+    t=datetime.datetime.now()
+    daytime=t.strftime('%Y-%m-%d')
+    daylogfile=logpath+'/'+str(daytime)+'.log'
+    logging.basicConfig(filename=daylogfile,level=logging.DEBUG)
+    os.system('chown zabbix.zabbix {0}'.format(daylogfile))
+    logging.info('*'*130)
+    logging.debug(str(t)+' mail send to {0},content is :\n {1}'.format(mail_to,content))
+
+
+if __name__ == "__main__": 
+    parser = argparse.ArgumentParser(description='Send mail to user for zabbix alerting')
+    parser.add_argument('mail_to',action="store", help='The address of the E-mail that send to user ')
+    parser.add_argument('subject',action="store", help='The subject of the E-mail')
+    parser.add_argument('content',action="store", help='The content of the E-mail')
+    args = parser.parse_args()
+    mail_to=args.mail_to
+    subject=args.subject
+    content=args.content
+
+    send_mail(mail_to,subject,content)
+    logwrite(sendstatus,mail_to,content)
+
+    #send_mail("772384788@qq.com","ww" , "hhhhhhhhhhhhh")
+    #logwrite(sendstatus,"772384788@qq.com","ww")
 

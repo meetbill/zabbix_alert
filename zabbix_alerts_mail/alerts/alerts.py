@@ -14,9 +14,9 @@ SMTPS和SMTP协议一样，也是用来发送邮件的，只是更安全些，�
 
 """
 import smtplib 
+import sys
 from email.mime.text import MIMEText 
 import os 
-import argparse
 import logging
 import datetime
  
@@ -102,18 +102,9 @@ def logwrite(sendstatus,mail_to,content):
 
 
 if __name__ == "__main__": 
-    parser = argparse.ArgumentParser(description='Send mail to user for zabbix alerting')
-    parser.add_argument('mail_to',action="store", help='The address of the E-mail that send to user ')
-    parser.add_argument('subject',action="store", help='The subject of the E-mail')
-    parser.add_argument('content',action="store", help='The content of the E-mail')
-    args = parser.parse_args()
-    mail_to=args.mail_to
-    subject=args.subject
-    content=args.content
+    send_mail(sys.argv[1], sys.argv[2], sys.argv[3])
+    logwrite(sendstatus,sys.argv[1],sys.argv[2])
 
-    send_mail(mail_to,subject,content)
-    logwrite(sendstatus,mail_to,content)
-
-    #send_mail("772384788@qq.com","ww" , "hhhhhhhhhhhhh")
-    #logwrite(sendstatus,"772384788@qq.com","ww")
+    #send_mail("772384788@qq.com","subject_test" , "content_test")
+    #logwrite(sendstatus,"mail_to","subject")
 

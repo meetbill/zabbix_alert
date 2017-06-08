@@ -68,15 +68,15 @@ if os.path.exists(alert_config):
 else:
     alert_config_file=open(alert_config,'w')
     alert_config_file.write("""[default]
-smtp_server = 'smtp.exmail.qq.com' 
+smtp_server = smtp.exmail.qq.com
 # SMTP_SSL(465)/SMTP(25)
 smtp_port = 465 
-smtp_user = 'xxxxx@qq.com'
-smtp_pass = '*********'
+smtp_user = xxxxx@qq.com
+smtp_pass = *********
 # SMTP_SSL(True)/SMTP(False)
 smtp_tls = True
 # 提示信息
-smtp_info = 'sc:'
+smtp_info = sc:
             """)
     alert_config_file.close()
     smtp_server = 'smtp.exmail.qq.com' 

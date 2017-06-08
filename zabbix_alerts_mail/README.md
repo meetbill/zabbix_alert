@@ -20,7 +20,9 @@
 
 #### config
 
+配置文件已放到 /etc/zabbix/alert/alert.ini
 ```
+[default]
 # 邮件服务器地址
 smtp_server = 'smtp.exmail.qq.com' 
 # 邮件服务器端口(25/465)
@@ -41,4 +43,4 @@ smtp_info = "sc:"
 
 #### 说明
 
-发送邮件后，会将日志记录在/var/log/zabbix/alert/
+发送邮件后，会将日志记录在 /var/log/zabbix/alert/alert.log
